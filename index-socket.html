@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #messages{
+            height: 20rem;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+    <div id="messages">
+
+    </div>
+    <div>
+        <input type="text" placeholder="username" id="username" name="username"/>
+        
+        <input type="text" placeholder="message" id="message" name="message"/>
+        <div>
+            <button id="submit" name="submit">SUBMIT</button>
+        </div>
+    </div>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js" integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+    
+    const button = document.getElementById("submit");
+    button.addEventListener("click",sendMessage)
+
+    var socket = io("ws://localhost:8080")
+    socket.on("connect",()=>{
+        console.log(socket.id)
+    })
+
+
+    socket.on("broadcast", async function (event){
+        console.log(event)
+    })
+
+    socket.on("notification", (payload)=>{
+        try{
+            console.log(payload)
+            if(payload.type === "user_message")
+            receiveMessage(payload)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
+
+    function receiveMessage({username, message, timestamp}){
+        const messagesElement = document.getElementById("messages");
+
+        const div = document.createElement("div");
+        div.textContent = `Message - ${message} - by ${username} - timestamp - ${timestamp}`
+        
+        messagesElement.append(div)
+    }
+
+    function sendMessage(){
+        const username = document.getElementById("username").value;
+        const message = document.getElementById("message").value;
+        if(socket.connected){
+            // * accepts only string
+            socket.emit("message", { username, message } )
+        }
+    }
+        
+    </script>
+</body>
+</html>
